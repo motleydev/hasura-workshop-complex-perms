@@ -1,0 +1,241 @@
+{
+  "resource_version": 27,
+  "metadata": {
+    "version": 3,
+    "sources": [
+      {
+        "name": "default",
+        "kind": "postgres",
+        "tables": [
+          {
+            "table": {
+              "name": "admin",
+              "schema": "public"
+            }
+          },
+          {
+            "table": {
+              "name": "group",
+              "schema": "public"
+            },
+            "array_relationships": [
+              {
+                "name": "group_members",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "g_id",
+                    "table": {
+                      "name": "group_member",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "member",
+                "permission": {
+                  "columns": [
+                    "id",
+                    "name"
+                  ],
+                  "filter": {
+                    "group_members": {
+                      "m_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "group_member",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "group",
+                "using": {
+                  "foreign_key_constraint_on": "g_id"
+                }
+              },
+              {
+                "name": "member",
+                "using": {
+                  "foreign_key_constraint_on": "m_id"
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "member",
+                "permission": {
+                  "columns": [
+                    "g_id",
+                    "m_id"
+                  ],
+                  "filter": {
+                    "member": {
+                      "id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "light_states",
+              "schema": "public"
+            },
+            "is_enum": true,
+            "array_relationships": [
+              {
+                "name": "switches",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "state",
+                    "table": {
+                      "name": "switch",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "member",
+              "schema": "public"
+            },
+            "array_relationships": [
+              {
+                "name": "group_members",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "m_id",
+                    "table": {
+                      "name": "group_member",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "switch",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "group",
+                "using": {
+                  "manual_configuration": {
+                    "column_mapping": {
+                      "g_id": "id"
+                    },
+                    "insertion_order": null,
+                    "remote_table": {
+                      "name": "group",
+                      "schema": "public"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "light_state",
+                "using": {
+                  "foreign_key_constraint_on": "state"
+                }
+              }
+            ],
+            "insert_permissions": [
+              {
+                "role": "member",
+                "permission": {
+                  "check": {
+                    "_and": [
+                      {
+                        "group": {
+                          "group_members": {
+                            "m_id": {
+                              "_eq": "X-Hasura-User-Id"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "_exists": {
+                          "_table": {
+                            "name": "admin",
+                            "schema": "public"
+                          },
+                          "_where": {
+                            "m_id": {
+                              "_eq": "X-Hasura-User-Id"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "columns": [
+                    "g_id",
+                    "state"
+                  ]
+                }
+              }
+            ],
+            "select_permissions": [
+              {
+                "role": "member",
+                "permission": {
+                  "columns": [
+                    "state"
+                  ],
+                  "filter": {
+                    "group": {
+                      "group_members": {
+                        "m_id": {
+                          "_eq": "X-Hasura-User-Id"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "configuration": {
+          "connection_info": {
+            "database_url": {
+              "from_env": "PG_DATABASE_URL"
+            },
+            "isolation_level": "read-committed",
+            "use_prepared_statements": false
+          }
+        },
+        "customization": {
+          "naming_convention": "hasura-default"
+        }
+      }
+    ],
+    "backend_configs": {
+      "dataconnector": {
+        "athena": {
+          "uri": "http://localhost:8081/api/v1/athena"
+        }
+      }
+    }
+  }
+}
